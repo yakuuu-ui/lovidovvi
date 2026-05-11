@@ -24,90 +24,55 @@ class SoundService {
   }
 
   playError() {
-    if (this.isMuted) return;
-    const ctx = this.getCtx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(150, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.2);
-
-    gain.gain.setValueAtTime(0.1, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    osc.start();
-    osc.stop(ctx.currentTime + 0.2);
+    // Silenced
   }
 
   playSuccess() {
     if (this.isMuted) return;
     const ctx = this.getCtx();
-    const playNote = (freq: number, start: number, duration: number, type: OscillatorType = 'sine') => {
-      const osc = ctx.createOscillator();
+    
+    // Create rhythmic white noise bursts to simulate clapping
+    const playBurst = (time: number) => {
+      const bufferSize = ctx.sampleRate * 0.1;
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(1200, time);
+      filter.Q.setValueAtTime(1, time);
+
       const gain = ctx.createGain();
-      osc.type = type;
-      osc.frequency.setValueAtTime(freq, start);
-      gain.gain.setValueAtTime(0.1, start);
-      gain.gain.exponentialRampToValueAtTime(0.01, start + duration);
-      osc.connect(gain);
+      gain.gain.setValueAtTime(0.1, time);
+      gain.gain.exponentialRampToValueAtTime(0.01, time + 0.08);
+
+      noise.connect(filter);
+      filter.connect(gain);
       gain.connect(ctx.destination);
-      osc.start(start);
-      osc.stop(start + duration);
+
+      noise.start(time);
+      noise.stop(time + 0.1);
     };
 
     const now = ctx.currentTime;
-    // Fast fanfare
-    playNote(523.25, now, 0.1); 
-    playNote(659.25, now + 0.1, 0.1); 
-    playNote(783.99, now + 0.2, 0.1); 
-    playNote(1046.50, now + 0.3, 0.5);
-
-    // Boss fight bass
-    playNote(100, now + 0.5, 1, 'sawtooth');
-    playNote(150, now + 0.8, 1, 'square');
+    // Rhythmic claps
+    for (let i = 0; i < 5; i++) {
+      playBurst(now + (i * 0.12));
+    }
   }
 
   playBoot() {
-    if (this.isMuted) return;
-    const ctx = this.getCtx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(40, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 2.5);
-
-    gain.gain.setValueAtTime(0.05, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 3);
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    osc.start();
-    osc.stop(ctx.currentTime + 3);
+    // Silenced
   }
 
   playTick() {
-    if (this.isMuted) return;
-    const ctx = this.getCtx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(800, ctx.currentTime);
-
-    gain.gain.setValueAtTime(0.05, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    osc.start();
-    osc.stop(ctx.currentTime + 0.05);
+    // Silenced
   }
 }
 
